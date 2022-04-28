@@ -1,0 +1,36 @@
+---
+kind: pipeline
+type: exec
+name: Deploy-Stage
+
+steps:
+  - name: create-image-tags
+    commands:
+      - cp -R /root/.aws ~/
+      - echo $(date +"%Y%m%d%H%M")"_"${DRONE_COMMIT_SHA:0:7} > .IMAGE_TAG
+      - echo 269049516248.dkr.ecr.us-west-1.amazonaws.com/qa_interview_backend > .IMAGE_REPO_US
+
+  - name: build-image
+    commands:
+      - docker build -t $(cat .IMAGE_REPO_US):$(cat .IMAGE_TAG) .
+      - docker tag $(cat .IMAGE_REPO_US):$(cat .IMAGE_TAG) $(cat .IMAGE_REPO_US):LATEST
+
+  - name: publish-to-ecr-us
+    commands:
+      - aws ecr get-login-password --region us-west-1 | docker login --username AWS --password-stdin 269049516248.dkr.ecr.us-west-1.amazonaws.com
+      - docker push $(cat .IMAGE_REPO_US):$(cat .IMAGE_TAG)
+      - docker push $(cat .IMAGE_REPO_US):LATEST
+
+  - name: update-ecs-service
+    commands:
+      - aws ecs --region us-west-1 --profile deployment update-service --cluster QA --service QA-Interview-Backend  --desired-count 1 --force-new-deployment
+
+  - name: remove-tmp-image
+    commands:
+      - docker rmi -f $(cat .IMAGE_REPO_US):$(cat .IMAGE_TAG) $(cat .IMAGE_REPO_US):LATEST
+
+trigger:
+  branch:
+    - develop
+  event:
+    - push
