@@ -39,30 +39,32 @@ export default {
 </script>
 
 <template>
-  <p>
-    Recommended IDE setup:
-    <a href="https://code.visualstudio.com/" target="_blank">VS Code</a>
-    +
-    <a href="https://github.com/johnsoncodehk/volar" target="_blank">Volar</a>
-  </p>
+  <div>
+    <p>
+      Recommended IDE setup:
+      <a href="https://code.visualstudio.com/" target="_blank">VS Code</a>
+      +
+      <a href="https://github.com/johnsoncodehk/volar" target="_blank">Volar</a>
+    </p>
 
-  <p>
-    <a href="https://vitejs.dev/guide/features.html" target="_blank">
-      Vite Documentation
-    </a>
-    |
-    <a href="https://v3.vuejs.org/" target="_blank">Vue 3 Documentation</a>
-  </p>
+    <p>
+      <a href="https://vitejs.dev/guide/features.html" target="_blank">
+        Vite Documentation
+      </a>
+      |
+      <a href="https://v3.vuejs.org/" target="_blank">Vue 3 Documentation</a>
+    </p>
 
-  <p>
-    Edit
-    <code>components/HelloWorld.vue</code> to test hot module replacement.
-  </p>
-  <el-table :data="tableData" style="width: 100%">
-    <el-table-column prop="date" label="日期" width="180"> </el-table-column>
-    <el-table-column prop="name" label="姓名" width="180"> </el-table-column>
-    <el-table-column prop="address" label="地址"> </el-table-column>
-  </el-table>
+    <p>
+      Edit
+      <code>components/HelloWorld.vue</code> to test hot module replacement.
+    </p>
+    <el-table :data="tableData" style="width: 100%">
+      <el-table-column prop="date" label="日期" width="180"> </el-table-column>
+      <el-table-column prop="name" label="姓名" width="180"> </el-table-column>
+      <el-table-column prop="address" label="地址"> </el-table-column>
+    </el-table>
+  </div>
 </template>
 
 <style scoped>
