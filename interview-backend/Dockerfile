@@ -8,6 +8,6 @@ RUN npm install pm2 -g
 RUN apk add yarn
 RUN yarn install
 
-EXPOSE 8080
+EXPOSE 8090
 
 CMD yarn run start

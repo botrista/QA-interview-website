@@ -4,51 +4,102 @@ export default {
   data() {
     return {
       tableData: [],
-      dialogFormVisible: true,
+      dialogFormVisible: false,
       formLabelWidth: '120px',
       form: {
-          name: '',
-          region: '',
-          date1: '',
-          date2: '',
-          delivery: false,
-          type: [],
-          resource: '',
-          desc: ''
+          user_name: '',
+          email: '',
+          password: ''
         },
+      editUserID: '',
     };
   },
   created() {
-    this.fetchData()
+    this.getUsersData()
   },
   methods: {
-    fetchData() {
-    axios
-      .get(`${import.meta.env.VITE_BASE_API}/user`)
-      .then((res) => {
-        this.tableData = res.data.data;
-        console.log(this.tableData);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-
+    async addUser() {
+      try {
+        const payloads = {
+          user_name: this.form.user_name,
+          email: this.form.email,
+          password: this.form.password
+        }
+        const result = await axios.post(`${import.meta.env.VITE_BASE_API}/user`, payloads)
+        this.tableData = result.data.data;
+      } catch (error) {
+        console.log(error)
+      }
+    },
+    async getUsersData() {
+      try {
+        const result = await axios.get(`${import.meta.env.VITE_BASE_API}/user`)
+        this.tableData = result.data.data;
+      } catch (error) {
+        console.log(error)
+      }
+    },
+    async getUserById(id) {
+      try {
+        const result = await axios.get(`${import.meta.env.VITE_BASE_API}/user/${id}`)
+        return result.data.data;
+      } catch (error) {
+        console.log(error)
+      }
+    },
+    async deleteUser(id) {
+      try {
+        const result = await axios.delete(`${import.meta.env.VITE_BASE_API}/user/${id}`)
+        this.tableData = result.data.data;
+      } catch (error) {
+        console.log(error)
+      }
+    },
+    async editUser(id) {
+      try {
+        const result = await axios.put(`${import.meta.env.VITE_BASE_API}/user/${id}`, {
+          user_name: this.form.user_name,
+          email: this.form.email,
+          password: this.form.password
+        })
+        this.tableData = result.data.data;
+      } catch (error) {
+        console.log(error)
+      }
     },
     confirmDelete(id) {
-      axios
-        .delete(`${import.meta.env.VITE_BASE_API}/user/${id}`)
-        .then((res) => {
-          this.tableData = res.data.data;
-          console.log(this.tableData);
-          this.fetchData()
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+      this.deleteUser(id)
+      this.getUsersData()
+    },
+    ConfirmEdit() {
+      if (this.editUserID === '') {
+        this.addUser()
+      } else {
+        this.editUser(this.editUserID)
+      }
+      this.closeEdit()
+    },
+    async openEdit(index, array) {
+      this.editUserID = array[index].id
+      const result = await this.getUserById(this.editUserID)
+      this.form.user_name = result.user_name
+      this.form.email = result.email
+      this.form.password = result.password
+      this.dialogFormVisible = true
+    },
+    OpenAdd() {
+      this.form.user_name = ''
+      this.form.email = ''
+      this.form.password = ''
+      this.dialogFormVisible = true
+    },
+    closeEdit() {
+      this.dialogFormVisible = false
+      this.editUserID = ''
     },
     openConfirm(index, array) {
       const id = array[index].id
-      this.$confirm('This will permanently delete the file. Continue?', 'Warning', {
+      this.$confirm('你確認要刪除這個使用者嗎?', 'Warning', {
           confirmButtonText: 'OK',
           cancelButtonText: 'Cancel',
           type: 'warning'
@@ -58,7 +109,7 @@ export default {
             type: 'success',
             message: 'Delete completed'
           });
-          this.fetchData()
+          this.getUsersData()
         }).catch(() => {
           this.$message({
             type: 'info',
@@ -74,12 +125,9 @@ export default {
 
 <div class="">
   <div class="wrap">
-   <el-button type="primary">新增</el-button>
-  <el-button type="success">Success</el-button>
+   <el-button type="primary" @click="OpenAdd()">新增</el-button>
   </div>
   <div class="table-wrap">
-
-  
   <el-table :data="tableData" style="width: 80%">
     <el-table-column prop="id" label="使用者ID" width="180"> </el-table-column>
     <el-table-column prop="user_name" label="使用者名稱" width="180"> </el-table-column>
@@ -114,25 +162,26 @@ export default {
   </el-table>
   </div>
 
-  <el-button type="text" @click="dialogFormVisible = true">open a Form nested Dialog</el-button>
-
-<el-dialog title="Shipping address" :visible.sync="dialogFormVisible">
-  <el-form :model="form">
-    <el-form-item label="Promotion name" :label-width="formLabelWidth">
-      <el-input v-model="form.name" autocomplete="off"></el-input>
-    </el-form-item>
-    <el-form-item label="Zones" :label-width="formLabelWidth">
-      <el-select v-model="form.region" placeholder="Please select a zone">
-        <el-option label="Zone No.1" value="shanghai"></el-option>
-        <el-option label="Zone No.2" value="beijing"></el-option>
-      </el-select>
-    </el-form-item>
-  </el-form>
-  <span slot="footer" class="dialog-footer">
-    <el-button @click="dialogFormVisible = false">Cancel</el-button>
-    <el-button type="primary" @click="dialogFormVisible = false">Confirm</el-button>
-  </span>
-</el-dialog>
+<el-dialog v-model="dialogFormVisible" :title="editUserID === '' ? '新增會員資料' : '修改會員資料'">
+    <el-form :model="form">
+      <el-form-item label="使用者名稱" :label-width="formLabelWidth">
+        <el-input v-model="form.user_name" autocomplete="off" />
+      </el-form-item>
+      <el-form-item label="信箱" :label-width="formLabelWidth">
+        <el-input v-model="form.email" autocomplete="off" />
+      </el-form-item>
+      <el-form-item label="密碼" :label-width="formLabelWidth">
+        <el-input v-model="form.password" autocomplete="off" />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="closeEdit()">取消</el-button>
+        <el-button type="primary" @click="ConfirmEdit()">確認</el-button
+        >
+      </span>
+    </template>
+  </el-dialog>
 </div>
 </template>
 
@@ -143,6 +192,8 @@ a {
 .wrap {
   display: flex;
   justify-content: end;
+  width: 90%;
+  margin: 60px 0;
 }
 .table-wrap {
   display: flex;
